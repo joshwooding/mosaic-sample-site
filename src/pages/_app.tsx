@@ -1,0 +1,50 @@
+// eslint-disable import/no-duplicates
+import { AppProps } from 'next/app';
+import Head from 'next/head';
+import {
+  BaseUrlProvider,
+  Image,
+  Link,
+  Metadata,
+  SidebarProvider
+} from '@jpmorganchase/mosaic-site-components';
+import { SessionProvider } from 'next-auth/react';
+import { ImageProvider, LinkProvider, ThemeProvider } from '@jpmorganchase/mosaic-components';
+import { LayoutProvider } from '@jpmorganchase/mosaic-layouts';
+import { themeClassName } from '@jpmorganchase/mosaic-theme';
+import { useCreateStore, StoreProvider } from '@jpmorganchase/mosaic-store';
+import { components as mosaicComponents } from '@jpmorganchase/mosaic-site-components';
+import { layouts as mosaicLayouts } from '@jpmorganchase/mosaic-layouts';
+import '@jpmorganchase/mosaic-site-preset-styles/index.css';
+
+import { MyAppProps } from '../types/mosaic';
+
+const components = mosaicComponents;
+const layoutComponents = mosaicLayouts;
+
+export default function MyApp({ Component, pageProps = {} }: AppProps<MyAppProps>) {
+  const { searchIndex, sharedConfig, source } = pageProps;
+  const frontmatter = source?.frontmatter || {};
+  const storeProps = { sharedConfig, searchIndex, ...frontmatter };
+  const createStore = useCreateStore(storeProps);
+  return (
+    <SessionProvider>
+      <StoreProvider value={createStore()}>
+        <Metadata Component={Head} />
+        <ThemeProvider className={themeClassName}>
+          <BaseUrlProvider>
+            <ImageProvider value={Image}>
+              <LinkProvider value={Link}>
+                <SidebarProvider>
+                  <LayoutProvider layoutComponents={layoutComponents}>
+                    <Component components={components} {...pageProps} />
+                  </LayoutProvider>
+                </SidebarProvider>
+              </LinkProvider>
+            </ImageProvider>
+          </BaseUrlProvider>
+        </ThemeProvider>
+      </StoreProvider>
+    </SessionProvider>
+  );
+}
